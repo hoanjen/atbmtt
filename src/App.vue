@@ -9,6 +9,10 @@
           <span class="mr-2">a:</span>
           <input v-model="a" type="number">
         </div>
+        <div class="mt-2">
+              <span class="mr-2">k:</span>
+              <input v-model="k" type="number">
+        </div>
       </div>
       <div class="w-[300px] bg-slate-200">
         <div>Khóa công khai</div>
@@ -25,13 +29,6 @@
           <input v-model="beta" type="number">
         </div>
       </div>
-      <div class="w-[300px] bg-slate-200 ml-10">
-          <div>Nhập k</div>
-          <div>
-            <span class="mr-2">k:</span>
-            <input v-model="k" type="number">
-          </div>
-        </div>
       <div class="ml-5 mt-20 w-26 p-2 bg-emerald-400 rounded-lg cursor-pointer  max-h-10" @click="sinh">Sinh tự động</div>
     </div>
     <div class="flex h-[700px]">
@@ -40,7 +37,7 @@
           <div class="mb-5">Phát sinh chữ ký</div>
           <div class="flex">
             <div class="mr-5">Văn bản ký</div>
-            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky" type="number">
+            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky" type="text">
             <div class="w-60 h-32">
               <label class="block ">
                 <span class="cursor-pointer sr-only">Chọn file</span>
@@ -74,7 +71,7 @@
           <div class="mb-5">Kiểm tra chữ ký</div>
           <div class="flex">
             <div class="mr-5">Văn bản ký</div>
-            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky2" type="number">
+            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky2" type="text">
             <div class="ml-5 w-16 text-center p-2  bg-emerald-400 rounded-lg cursor-pointer max-h-10">FILE</div>
           </div>
           <div class="flex mt-10">
@@ -99,6 +96,9 @@
 </template>
 
 <script>
+// import bigInt from 'big-integer';
+import { SHA256 } from 'crypto-js'
+
 export default {
   data() {
     return {
@@ -212,13 +212,16 @@ export default {
 
     },
     hamky() {
+      let hash = SHA256(this.vanbanky).toString()
+      hash = parseInt(hash,16)
+      hash = hash%this.p
       this.gamma = this.binhPhuongVaNhan(this.alpha, this.k, this.p)
       let tmp = this.euclidMR(this.k, this.p - 1)
       if (tmp === -1) {
         this.chuky = `Không tồn tồn tại chữ ký với k = ${this.k}`
         return
       }
-      let tmp2 = (this.vanbanky - this.a * this.gamma) % (this.p - 1)
+      let tmp2 = (hash - this.a * this.gamma) % (this.p - 1)
       if (tmp2 < 0) {
         tmp2 = tmp2 + (this.p-1)
       }
@@ -227,8 +230,22 @@ export default {
       this.chuky = `${this.gamma} ${this.delta}`
     },
     xacnhan() {
-      let vetrai = (this.binhPhuongVaNhan(this.beta, this.gamma, this.p) * this.binhPhuongVaNhan(this.gamma, this.delta, this.p)) % this.p
-      let vephai = this.binhPhuongVaNhan(this.alpha, this.vanbanky2, this.p)
+      let hash = SHA256(this.vanbanky2).toString()
+      hash = parseInt(hash, 16)
+      hash = hash % this.p
+      let ck = this.chuky2
+      let index = null
+      for(let i = 0; i < ck.length; i++){
+        if(ck[i] === ' '){
+          index = i
+        }
+      }
+      let tmp = ck.slice(0,index)
+      tmp = parseInt(tmp)
+      let tmp2 = ck.slice(index +1 , ck.length+1)
+      tmp2 = parseInt(tmp2, 10)
+      let vetrai = (this.binhPhuongVaNhan(this.beta, tmp, this.p) * this.binhPhuongVaNhan(tmp, tmp2, this.p)) % this.p
+      let vephai = this.binhPhuongVaNhan(this.alpha, hash, this.p)
       if (vetrai === vephai) {
         this.thongbao = 'Chữ ký đúng'
       } else {
