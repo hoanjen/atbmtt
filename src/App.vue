@@ -41,7 +41,7 @@
             <div class="w-60 h-32">
               <label class="block ">
                 <span class="cursor-pointer sr-only">Chọn file</span>
-                <input type="file" class="w-full cursor-pointer text-sm text-red-300
+                <input type="file" @change="readFile1" class="w-full cursor-pointer text-sm text-red-300
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-sm file:font-semibold
@@ -59,7 +59,7 @@
               <div class="bg-emerald-400 rounded-lg cursor-pointer p-1 py-2 w-16 mb-5" @click="chuyen">
                 Chuyển
               </div>
-              <div class="bg-emerald-400 rounded-lg cursor-pointer p-2 w-16">
+              <div class="bg-emerald-400 rounded-lg cursor-pointer p-2 w-16" @click="saveTextAsFile">
                 Lưu
               </div>
             </div>
@@ -72,15 +72,31 @@
           <div class="flex">
             <div class="mr-5">Văn bản ký</div>
             <input class="w-60 h-32 bg-slate-400" v-model="vanbanky2" type="text">
-            <div class="ml-5 w-16 text-center p-2  bg-emerald-400 rounded-lg cursor-pointer max-h-10">FILE</div>
+            <label class="block ">
+                  <span class="cursor-pointer sr-only">Chọn file</span>
+                  <input type="file" @change="readFile2" class="w-full cursor-pointer text-sm text-red-300
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-violet-50 file:text-violet-700
+                hover:file:bg-violet-100
+                    "/>
+            </label>
           </div>
           <div class="flex mt-10">
             <div class="mr-12">Chữ ký</div>
             <input class="w-60 h-32 bg-slate-400" v-model="chuky2" type="text">
-            <div class="ml-5">
-              <div class="bg-emerald-400 rounded-lg cursor-pointer p-2 w-16 mb-5">
-                FILE
-              </div>
+            <div class="">
+              <label class="block ">
+                    <span class="cursor-pointer sr-only">Chọn file</span>
+                    <input type="file" @change="readFile3" class="w-full cursor-pointer text-sm text-red-300
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-violet-50 file:text-violet-700
+                hover:file:bg-violet-100
+                    "/>
+              </label>
             </div>
           </div>
           <div class="ml-36 m-5 p-2 w-32 text-center bg-emerald-400 rounded-lg cursor-pointer " @click="xacnhan">Kiểm tra
@@ -113,11 +129,54 @@ export default {
       k: null,
       gamma: null,
       delta: null,
-      thongbao: null
+      thongbao: null,
+      file: null, 
+      content: null
     }
   },
   methods: {
+    readFile1(event) {
+        const file = event.target.files[0]
+        const reader = new FileReader()
+        
+        reader.readAsText(file, 'utf8')
+        reader.addEventListener('load', (e) => {
+          this.vanbanky = e.target.result;
+        })
+    },
+    readFile2(event) {
+      const file = event.target.files[0]
+      const reader = new FileReader()
 
+      reader.readAsText(file, 'utf8')
+      reader.addEventListener('load', (e) => {
+        this.vanbanky2 = e.target.result;
+      })
+    },
+    readFile3(event) {
+      const file = event.target.files[0]
+      const reader = new FileReader()
+
+      reader.readAsText(file, 'utf8')
+      reader.addEventListener('load', (e) => {
+        this.chuky2 = e.target.result;
+      })
+    },
+    saveTextAsFile() {
+      const text = this.chuky;
+      const filename = "chuky.txt";
+
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+
+      // Giải phóng URL đã tạo
+      URL.revokeObjectURL(url);
+    },
     sinh() {
       this.p = this.randomNT(100, 900);
       this.alpha = Math.floor(Math.random(0, 1)*(this.p - 2) + 1)

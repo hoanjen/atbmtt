@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "crypto-js": "^4.1.1",
+    "docxtemplater": "^3.37.9",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.6.0",
     "vue": "^3.3.2"
   },
   "devDependencies": {
