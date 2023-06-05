@@ -1,7 +1,7 @@
 
 <template>
-  
-  <div class="w-[1200px] h-[900px] text-white m-auto text-center">
+  <div id="container" class="max-w-60 max-h-32 bg-slate-400"></div>
+  <div class="z-10 w-[1200px] h-[900px] text-white m-auto text-center">
     <div class="h-[200px] bg-slate-400 flex text-red-400">
       <div class="w-[300px] bg-slate-200 mr-10">
         <div>Khóa bí mật</div>
@@ -114,7 +114,7 @@
 <script>
 // import bigInt from 'big-integer';
 import { SHA256 } from 'crypto-js'
-
+import Docx2Html from 'docx2html';
 export default {
   data() {
     return {
@@ -135,14 +135,26 @@ export default {
     }
   },
   methods: {
+    test(input) {
+      Docx2Html(input, { container: document.querySelector("#container") })
+        .then(html => {
+          console.log(html.toString())
+        })
+    },
     readFile1(event) {
         const file = event.target.files[0]
         const reader = new FileReader()
-        
-        reader.readAsText(file, 'utf8')
-        reader.addEventListener('load', (e) => {
-          this.vanbanky = e.target.result;
-        })
+        console.log(file)
+        let arr = file.name.split('.')
+        console.log(arr[arr.length - 1])
+        if(arr[arr.length-1] === 'txt'){
+          reader.readAsText(file, 'utf8')
+          reader.addEventListener('load', (e) => {
+            this.vanbanky = e.target.result;
+          })
+        } else if(arr[arr.length - 1] === 'docx'){
+          this.test(file)
+        }
     },
     readFile2(event) {
       const file = event.target.files[0]
@@ -317,4 +329,9 @@ export default {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+section{
+  max-width: 200px !important;
+  max-height: 200px !important
+}
+</style>

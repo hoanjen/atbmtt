@@ -1,46 +1,33 @@
 <template>
     <div>
         <input type="file" @change="handleFileInput">
-        <div v-html="data"></div>
+        <div id="container" style="margin:10px;padding:10px;border:1px solid; text-align:left; min-height:500px;"></div>
     </div>
 </template>
 
+
 <script>
-import mammoth from 'mammoth';
+import Docx2Html from 'docx2html';
 
 export default {
-    data(){
-        return {
-            data: null
-        }
-    },
     methods: {
-        convertWordToHtml(file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const arrayBuffer = event.target.result;
-
-                mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-                    .then((result) => {
-                        const html = result.value;
-                        // Sử dụng nội dung HTML được chuyển đổi
-                        this.data = html
-                        console.log(html);
-                    })
-                    .catch((error) => {
-                        console.error('Lỗi chuyển đổi:', error);
-                    });
-            };
-
-            reader.readAsArrayBuffer(file);
-        },
+        test(input){
+			Docx2Html(input,{container:document.querySelector("#container")})
+				.then(html=>{
+					input.value=""
+					console.log(html)
+					//try html.toString/asZip/download/save
+				})
+		},
         handleFileInput(event) {
             const file = event.target.files[0];
             if (file) {
-                this.convertWordToHtml(file);
+                this.test(file);
             }
-        }
-    }
+        },
+    },
 };
+
+
 
 </script>
