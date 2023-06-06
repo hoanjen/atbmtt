@@ -1,6 +1,6 @@
 
 <template>
-  <div id="container" class="max-w-60 max-h-32 bg-slate-400"></div>
+  
   <div class="z-10 w-[1200px] h-[900px] text-white m-auto text-center">
     <div class="h-[200px] bg-slate-400 flex text-red-400">
       <div class="w-[300px] bg-slate-200 mr-10">
@@ -36,12 +36,13 @@
         <div class="m-5">
           <div class="mb-5">Phát sinh chữ ký</div>
           <div class="flex">
-            <div class="mr-5">Văn bản ký</div>
-            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky" type="text">
+            <div class="mr-5" >Văn bản ký</div>
+            <input v-if="isTxT1" class="w-60 h-32 bg-slate-400" ref="input1a"  v-model="vanbanky" type="text">
+            <div v-if="!isTxT1" id="container" class="max-w-60 max-h-32 "></div>
             <div class="w-60 h-32">
               <label class="block ">
                 <span class="cursor-pointer sr-only">Chọn file</span>
-                <input type="file" @change="readFile1" class="w-full cursor-pointer text-sm text-red-300
+                <input type="file" @change="readFile1" ref="input1b" class="w-full cursor-pointer text-sm text-red-300
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-full file:border-0
                 file:text-sm file:font-semibold
@@ -49,6 +50,7 @@
                 hover:file:bg-violet-100
                     "/>
               </label>
+              <span class="cursor-pointer text-white" @click="inputDefault1">Bỏ chọn file</span>
             </div>
           </div>
           <div class="ml-44 my-5 p-2 w-16 text-center bg-emerald-400 rounded-lg cursor-pointer " @click="hamky">Ký</div>
@@ -71,19 +73,23 @@
           <div class="mb-5">Kiểm tra chữ ký</div>
           <div class="flex">
             <div class="mr-5">Văn bản ký</div>
-            <input class="w-60 h-32 bg-slate-400" v-model="vanbanky2" type="text">
-            <label class="block ">
-                  <span class="cursor-pointer sr-only">Chọn file</span>
-                  <input type="file" @change="readFile2" class="w-full cursor-pointer text-sm text-red-300
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-full file:border-0
-                file:text-sm file:font-semibold
-                file:bg-violet-50 file:text-violet-700
-                hover:file:bg-violet-100
-                    "/>
-            </label>
+            <input v-if="isTxT2" class="w-60 h-32 bg-slate-400" ref="input2a" v-model="vanbanky2" type="text">
+            <div v-if="!isTxT2" id="containerr" class="max-w-60 max-h-32 "></div>
+            <div>
+              <label class="block ">
+                    <span class="cursor-pointer sr-only">Chọn file</span>
+                    <input type="file" @change="readFile2" ref="input2b" class="w-full cursor-pointer text-sm text-red-300
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-violet-50 file:text-violet-700
+                  hover:file:bg-violet-100
+                      "/>
+              </label>
+              <span class="cursor-pointer text-white block" @click="inputDefault2">Bỏ chọn file</span>
+            </div>
           </div>
-          <div class="flex mt-10">
+          <div class="flex mt-10">  
             <div class="mr-12">Chữ ký</div>
             <input class="w-60 h-32 bg-slate-400" v-model="chuky2" type="text">
             <div class="">
@@ -115,6 +121,8 @@
 // import bigInt from 'big-integer';
 import { SHA256 } from 'crypto-js'
 import Docx2Html from 'docx2html';
+import { Document, Packer, Paragraph, TextRun } from "docx";
+import mammoth from "mammoth";
 export default {
   data() {
     return {
@@ -126,76 +134,158 @@ export default {
       alpha: null,
       beta: null,
       a: null,
-      k: null,
+      k: null,  
       gamma: null,
       delta: null,
       thongbao: null,
       file: null, 
-      content: null
+      content: null,
+      isTxT1: true,
+      isTxT2: true,
+      datatransferinput: null
     }
   },
   methods: {
-    test(input) {
+    inputDefault1(){
+      if(this.$refs.input1a !== null){
+        this.$refs.input1a.value = null
+      }
+      this.$refs.input1b.value = null
+      this.vanbanky = null
+      this.isTxT1 = true
+      this.datatransferinput = null
+    },
+    inputDefault2() {
+      if (this.$refs.input2a !== null) {
+        this.$refs.input2a.value = null
+      }
+      this.$refs.input2b.value = null
+      this.vanbanky2 = null
+      this.isTxT2 = true
+    },
+    test1(input) {
       Docx2Html(input, { container: document.querySelector("#container") })
         .then(html => {
-          console.log(html.toString())
+          this.vanbanky = html.toString()
+        })
+    },
+    test2(input) {
+      Docx2Html(input, { container: document.querySelector("#containerr") })
+        .then(html => {
+          this.vanbanky2 = html.toString()
         })
     },
     readFile1(event) {
         const file = event.target.files[0]
         const reader = new FileReader()
-        console.log(file)
         let arr = file.name.split('.')
-        console.log(arr[arr.length - 1])
         if(arr[arr.length-1] === 'txt'){
           reader.readAsText(file, 'utf8')
           reader.addEventListener('load', (e) => {
             this.vanbanky = e.target.result;
           })
         } else if(arr[arr.length - 1] === 'docx'){
-          this.test(file)
+          this.isTxT1 = false
+          this.datatransferinput = file
+          setTimeout( () => this.test1(file),20)
         }
     },
     readFile2(event) {
       const file = event.target.files[0]
       const reader = new FileReader()
-
-      reader.readAsText(file, 'utf8')
-      reader.addEventListener('load', (e) => {
-        this.vanbanky2 = e.target.result;
-      })
+      let arr = file.name.split('.')
+      if (arr[arr.length - 1] === 'txt') {
+        reader.readAsText(file, 'utf8')
+        reader.addEventListener('load', (e) => {
+          this.vanbanky2 = e.target.result;
+        })
+      } else if (arr[arr.length - 1] === 'docx') {
+        this.isTxT2 = false
+        setTimeout(() => this.test2(file), 20)
+      }
     },
     readFile3(event) {
       const file = event.target.files[0]
       const reader = new FileReader()
+      let arr = file.name.split('.')
+      if(arr[arr.length - 1] === 'txt'){
+  
+        reader.readAsText(file, 'utf8')
+        reader.addEventListener('load', (e) => {
+          this.chuky2 = e.target.result;
+        })
+      }
+      else{
+          reader.onload = (e) => {
+          const arrayBuffer = e.target.result;
 
-      reader.readAsText(file, 'utf8')
-      reader.addEventListener('load', (e) => {
-        this.chuky2 = e.target.result;
-      })
+          // Đọc file .docx và chuyển đổi thành văn bản
+          mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+            .then((result) => {
+              const text = result.value; // Văn bản đã chuyển đổi
+              console.log(text);
+              this.chuky2 = text
+            })
+            .catch((error) => {
+              console.error('Lỗi khi đọc file:', error);
+            });
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
     },
     saveTextAsFile() {
-      const text = this.chuky;
-      const filename = "chuky.txt";
+      if(this.datatransferinput === null){
+        const text = this.chuky;
+        const filename = "chuky.txt";
+  
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+  
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+  
+        URL.revokeObjectURL(url);
+      } else{
 
-      const blob = new Blob([text], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
+        const doc = new Document({
+          sections: [
+            {
+              properties: {},
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: this.chuky,
+                      size: 40
+                    })
+                  ],
+                }),
+              ],
+            },
+          ],
+        });
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.click();
+        Packer.toBlob(doc).then((blob) => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "chuky.docx";
+          link.click();
+          URL.revokeObjectURL(url);
 
-      // Giải phóng URL đã tạo
-      URL.revokeObjectURL(url);
+        });
+      }
     },
     sinh() {
-      this.p = this.randomNT(100, 900);
+      this.p = this.randomNT(100000, 900000);
       this.alpha = Math.floor(Math.random(0, 1)*(this.p - 2) + 1)
       this.a = Math.floor(Math.random(0, 1) * (this.p - 4) + 2)
       this.beta = this.binhPhuongVaNhan(this.alpha,this.a, this.p)
       do{
-        this.k = Math.floor(Math.random(0,1)*997 + 1)
+        this.k = Math.floor(Math.random(0,1)*999997 + 1)
 
       }while(this.gcd(this.k,this.p-1) !== 1)
     },
@@ -220,6 +310,10 @@ export default {
     chuyen() {
       this.chuky2 = this.chuky
       this.vanbanky2 = this.vanbanky
+      if(this.datatransferinput !== null){
+        this.isTxT2 = false
+        setTimeout(() => this.test2(this.datatransferinput), 20)
+      }
     },
     toBinary(n) {
       let binary = []
@@ -329,9 +423,28 @@ export default {
 
 </script>
 
-<style scoped>
+<style>
+
+#container
 section{
-  max-width: 200px !important;
-  max-height: 200px !important
+  width: 240px !important;
+  height: 128px !important;
+  min-height: 128px !important;
+  padding: 0px !important;
+}
+
+#containerr
+section{
+  width: 240px !important;
+  height: 128px !important;
+  min-height: 128px !important;
+  padding: 0px !important;
+}
+
+#A{
+  width: 240px !important;
+  height: 128px !important;
+  min-height: 128px !important;
+  padding: 0px !important;
 }
 </style>
